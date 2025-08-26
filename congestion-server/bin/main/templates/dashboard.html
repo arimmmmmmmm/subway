@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"><title>Congestion Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <h2>오늘 시간대별 혼잡도</h2>
+  <canvas id="todayChart"></canvas>
+
+  <h2>최근 7일 요일별 평균(1=LOW,3=HIGH)</h2>
+  <canvas id="weekChart"></canvas>
+
+  <script>
+    async function loadToday(){
+      const data = await (await fetch('/api/stats/today')).json();
+      const hours = Object.keys(data);
+      const low = hours.map(h => data[h].LOW);
+      const med = hours.map(h => data[h].MEDIUM);
+      const high = hours.map(h => data[h].HIGH);
+      new Chart(document.getElementById('todayChart'), {
+        type: 'line',
+        data: { labels: hours, datasets: [{label:'LOW', data:low},
+                                          {label:'MEDIUM', data:med},
+                                          {label:'HIGH', data:high}] }
+      });
+    }
+    async function loadWeek(){
+      const data = await (await fetch('/api/stats/week')).json();
+      const labels = Object.keys(data);
+      const vals = Object.values(data);
+      new Chart(document.getElementById('weekChart'), {
+        type: 'bar',
+        data: { labels, datasets: [{label:'평균 혼잡도', data: vals}] },
+        options: { scales: { y: { suggestedMin: 0, suggestedMax: 3 } } }
+      });
+    }
+    loadToday(); loadWeek();
+  </script>
+</body>
+</html>
